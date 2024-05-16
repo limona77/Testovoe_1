@@ -7,13 +7,15 @@ import (
 
 type IClient interface {
 	CheckValidTime(startTime, endTime time.Time) bool
-	CheckInDB(key int) bool
-	SetInDB(key int, val int)
-	DeleteInDB(key int)
-
-	//GetCurrentTime() time.Time
-	//GetClientName() string
-	//GetTableNumber() int
+	GetTableInWaitingFromDB(key string) (int, bool)
+	SetInWaitingFromDB(key string, val int)
+	DeleteInWaitingFromDB(key string)
+	GetClientFromDB(key int) (string, bool)
+	SetClientInDB(key int, val string)
+	DeleteClientInDB(key int)
+	GetTableFromDB(key string) (int, bool)
+	SetTableInDB(key string, val int)
+	DeleteTableInDB(key string)
 }
 
 type Client struct {
@@ -38,14 +40,38 @@ func (c *Client) CheckValidTime(startTime, endTime time.Time) bool {
 	return c.CurrentTime.Before(endTime) && c.CurrentTime.After(startTime)
 }
 
-func (c *Client) CheckInDB(key int) bool {
-	return c.db.Get(key)
+func (c *Client) GetTableInWaitingFromDB(key string) (int, bool) {
+	return c.db.GetTableInWaiting(key)
 }
 
-func (c *Client) SetInDB(key int, val int) {
-	c.db.Set(key, val)
+func (c *Client) SetInWaitingFromDB(key string, val int) {
+	c.db.SetTableInWaiting(key, val)
 }
 
-func (c *Client) DeleteInDB(key int) {
-	c.db.Delete(key)
+func (c *Client) DeleteInWaitingFromDB(key string) {
+	c.db.DeleteTableInWaiting(key)
+}
+
+func (c *Client) GetClientFromDB(key int) (string, bool) {
+	return c.db.GetClient(key)
+}
+
+func (c *Client) SetClientInDB(key int, val string) {
+	c.db.SetClient(key, val)
+}
+
+func (c *Client) DeleteClientInDB(key int) {
+	c.db.DeleteClient(key)
+}
+
+func (c *Client) GetTableFromDB(key string) (int, bool) {
+	return c.db.GetTable(key)
+}
+
+func (c *Client) SetTableInDB(key string, val int) {
+	c.db.SetTable(key, val)
+}
+
+func (c *Client) DeleteTableInDB(key string) {
+	c.db.DeleteTable(key)
 }

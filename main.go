@@ -4,6 +4,7 @@ import (
 	"Testovoe/client"
 	"Testovoe/custom_errors"
 	"Testovoe/data_base"
+	"Testovoe/queue"
 	"Testovoe/settings_club"
 	"fmt"
 	"log"
@@ -16,7 +17,7 @@ import (
 )
 
 func ParseFile(fileName string, db *data_base.DB) {
-	file, err := os.ReadFile("./test_file.txt")
+	file, err := os.ReadFile(fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -24,7 +25,7 @@ func ParseFile(fileName string, db *data_base.DB) {
 	lines := strings.Split(string(file), "\n")
 
 	settingsCLub := settings_club.NewSettingsClub(0, time.Time{}, time.Time{}, 0)
-	for i := 0; i < 13; i++ {
+	for i := 0; i < 20; i++ {
 		if lines[i] != "" {
 			newLine := strings.TrimRight(lines[i], "\r")
 
@@ -93,18 +94,22 @@ func HandleAction(c *client.Client, settingsClub settings_club.SettingsCLub) err
 				custom_errors.ErrNotOpenYet)
 		}
 	case 2:
-		busy := c.CheckInDB(c.ActionId)
+		_, busy := c.GetClientFromDB(c.TableNumber)
 		if busy {
 			fmt.Printf("%s %v %s %d\n",
 				c.CurrentTime.Format("15:04"),
 				c.ActionId, c.ClientName, c.TableNumber)
+			ClientsQueue.Enqueue(*c)
+			c.SetInWaitingFromDB(c.ClientName, c.TableNumber)
 			return fmt.Errorf("%s %v %s\n",
 				c.CurrentTime.Format("15:04"),
 				custom_errors.ErrCode,
 				custom_errors.ErrPlaceIsBusy)
 		}
-		c.SetInDB(c.ActionId, c.TableNumber)
+		c.SetClientInDB(c.TableNumber, c.ClientName)
+		c.SetTableInDB(c.ClientName, c.TableNumber)
 		settingsClub.CountTables--
+
 		fmt.Printf("%s %v %s %d\n",
 			c.CurrentTime.Format("15:04"),
 			c.ActionId, c.ClientName, c.TableNumber)
@@ -113,23 +118,39 @@ func HandleAction(c *client.Client, settingsClub settings_club.SettingsCLub) err
 		fmt.Printf("%s %v %s\n",
 			c.CurrentTime.Format("15:04"),
 			c.ActionId, c.ClientName)
-		if settingsClub.CountTables == 0 {
-			c.DeleteInDB(c.ActionId)
-			settingsClub.CountTables++
+		if ClientsQueue.Len() > settingsClub.CountTables {
+			fmt.Printf("%s %v %s\n",
+				c.CurrentTime.Format("15:04"),
+				11, c.ClientName)
+			return nil
 		}
-		fmt.Printf("%s %v %s\n",
-			c.CurrentTime.Format("15:04"),
-			custom_errors.ErrCode,
-			custom_errors.ErrICanWaitNoLonger)
+		tableNumber, _ := c.GetTableInWaitingFromDB(c.ClientName)
+		_, busy := c.GetClientFromDB(tableNumber)
+		if !busy {
+			fmt.Printf("%s %v %s\n", c.CurrentTime.Format("15:04"),
+				custom_errors.ErrCode,
+				custom_errors.ErrICanWaitNoLonger)
+		}
+
 		return nil
 	case 4:
-		exist := c.CheckInDB(c.ActionId)
-		if !exist {
-			return fmt.Errorf("%s %v %s\n",
+
+		c.TableNumber, _ = c.GetTableFromDB(c.ClientName)
+		fmt.Printf("%s %v %s\n",
+			c.CurrentTime.Format("15:04"),
+			c.ActionId, c.ClientName)
+
+		if !ClientsQueue.IsEmpty() {
+			cl := ClientsQueue.Dequeue()
+			cl.TableNumber, _ = cl.GetTableInWaitingFromDB(cl.ClientName)
+			cl.SetClientInDB(c.TableNumber, cl.ClientName)
+			cl.SetTableInDB(cl.ClientName, c.TableNumber)
+			cl.DeleteInWaitingFromDB(cl.ClientName)
+			fmt.Printf("%s %v %s %d\n",
 				c.CurrentTime.Format("15:04"),
-				custom_errors.ErrCode,
-				custom_errors.ErrClientUnknown)
+				12, cl.ClientName, c.TableNumber)
 		}
+		c.DeleteTableInDB(c.ClientName)
 		return nil
 	default:
 		return fmt.Errorf("%w",
@@ -137,6 +158,8 @@ func HandleAction(c *client.Client, settingsClub settings_club.SettingsCLub) err
 	}
 	return nil
 }
+
+var ClientsQueue = queue.Queue{}
 
 func main() {
 	db := data_base.NewDB()

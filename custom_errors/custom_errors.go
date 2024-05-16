@@ -7,7 +7,7 @@ var (
 	ErrYouShallNotPass  = errors.New("YouShallNotPass")
 	ErrPlaceIsBusy      = errors.New("PlaceIsBusy")
 	ErrClientUnknown    = errors.New("ClientUnknown")
-	ErrICanWaitNoLonger = errors.New("ICanWaitNoLonger")
+	ErrICanWaitNoLonger = errors.New("ICanWaitNoLonger!")
 	ErrCode             = errors.New("13")
 	ErrActionNotExist   = errors.New("ActionNotExist")
 )
