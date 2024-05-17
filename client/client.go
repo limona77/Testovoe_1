@@ -1,21 +1,27 @@
 package client
 
 import (
-	"Testovoe/data_base"
 	"time"
 )
 
+type DBInterfaceClient interface {
+	GetTableInWaiting(key string) (int, bool)
+	SetTableInWaiting(key string, val int)
+	DeleteTableInWaiting(key string)
+	GetClient(key int) (Client, bool)
+	SetClient(key int, val Client)
+	DeleteClient(key int)
+	ForEachInClientsNameFromDB() []string
+}
 type IClient interface {
 	CheckValidTime(startTime, endTime time.Time) bool
 	GetTableInWaitingFromDB(key string) (int, bool)
 	SetInWaitingFromDB(key string, val int)
 	DeleteInWaitingFromDB(key string)
-	GetClientFromDB(key int) (string, bool)
-	SetClientInDB(key int, val string)
+	GetClientFromDB(key int) (Client, bool)
+	SetClientInDB(key int, val Client)
 	DeleteClientInDB(key int)
-	GetTableFromDB(key string) (int, bool)
-	SetTableInDB(key string, val int)
-	DeleteTableInDB(key string)
+	ForEachInClientsName() []string
 }
 
 type Client struct {
@@ -23,10 +29,10 @@ type Client struct {
 	ActionId    int
 	ClientName  string
 	TableNumber int
-	db          *data_base.DB
+	db          DBInterfaceClient
 }
 
-func NewClient(currentTime time.Time, actionId int, clientName string, tableNumber int, db *data_base.DB) *Client {
+func NewClient(currentTime time.Time, actionId int, clientName string, tableNumber int, db DBInterfaceClient) *Client {
 	return &Client{
 		CurrentTime: currentTime,
 		ActionId:    actionId,
@@ -34,6 +40,10 @@ func NewClient(currentTime time.Time, actionId int, clientName string, tableNumb
 		TableNumber: tableNumber,
 		db:          db,
 	}
+}
+
+func (c *Client) ForEachInClientsName() []string {
+	return c.db.ForEachInClientsNameFromDB()
 }
 
 func (c *Client) CheckValidTime(startTime, endTime time.Time) bool {
@@ -52,26 +62,14 @@ func (c *Client) DeleteInWaitingFromDB(key string) {
 	c.db.DeleteTableInWaiting(key)
 }
 
-func (c *Client) GetClientFromDB(key int) (string, bool) {
+func (c *Client) GetClientFromDB(key int) (Client, bool) {
 	return c.db.GetClient(key)
 }
 
-func (c *Client) SetClientInDB(key int, val string) {
+func (c *Client) SetClientInDB(key int, val Client) {
 	c.db.SetClient(key, val)
 }
 
 func (c *Client) DeleteClientInDB(key int) {
 	c.db.DeleteClient(key)
-}
-
-func (c *Client) GetTableFromDB(key string) (int, bool) {
-	return c.db.GetTable(key)
-}
-
-func (c *Client) SetTableInDB(key string, val int) {
-	c.db.SetTable(key, val)
-}
-
-func (c *Client) DeleteTableInDB(key string) {
-	c.db.DeleteTable(key)
 }
