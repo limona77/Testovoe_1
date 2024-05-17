@@ -1,22 +1,26 @@
 package client
 
+import "C"
 import (
+	"Testovoe/table"
 	"time"
 )
 
 type DBInterfaceClient interface {
+	DeleteClientFromDB(key int)
+	SetClientFromDB(key int, val Client)
+	GetClientFromDB(key int) (Client, bool)
+	DeleteTableInWaiting(key string)
+	ForEachInClientsNameFromDB() []string
+	SetTableFromDB(key string, val table.Table)
 	GetTableInWaiting(key string) (int, bool)
 	SetTableInWaiting(key string, val int)
-	DeleteTableInWaiting(key string)
-	GetClient(key int) (Client, bool)
-	SetClient(key int, val Client)
-	DeleteClient(key int)
-	ForEachInClientsNameFromDB() []string
+	GetTableFromDB(key string) (table.Table, bool)
 }
 type IClient interface {
 	CheckValidTime(startTime, endTime time.Time) bool
 	GetTableInWaitingFromDB(key string) (int, bool)
-	SetInWaitingFromDB(key string, val int)
+	SetTableInWaitingFromDB(key string, val int)
 	DeleteInWaitingFromDB(key string)
 	GetClientFromDB(key int) (Client, bool)
 	SetClientInDB(key int, val Client)
@@ -54,7 +58,7 @@ func (c *Client) GetTableInWaitingFromDB(key string) (int, bool) {
 	return c.db.GetTableInWaiting(key)
 }
 
-func (c *Client) SetInWaitingFromDB(key string, val int) {
+func (c *Client) SetTableInWaitingFromDB(key string, val int) {
 	c.db.SetTableInWaiting(key, val)
 }
 
@@ -63,13 +67,13 @@ func (c *Client) DeleteInWaitingFromDB(key string) {
 }
 
 func (c *Client) GetClientFromDB(key int) (Client, bool) {
-	return c.db.GetClient(key)
+	return c.db.GetClientFromDB(key)
 }
 
 func (c *Client) SetClientInDB(key int, val Client) {
-	c.db.SetClient(key, val)
+	c.db.SetClientFromDB(key, val)
 }
 
 func (c *Client) DeleteClientInDB(key int) {
-	c.db.DeleteClient(key)
+	c.db.DeleteClientFromDB(key)
 }

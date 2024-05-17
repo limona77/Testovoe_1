@@ -11,17 +11,17 @@ type DB struct {
 	tables           map[string]table.Table
 }
 type IDB interface {
-	GetTableInWaiting(key string) (int, bool)
-	SetTableInWaiting(key string, val int)
-	DeleteTableInWaiting(key string)
-	GetClient(key int) (client.Client, bool)
-	SetClient(key int, val client.Client)
-	DeleteClient(key int)
 	GetTableFromDB(key string) (table.Table, bool)
 	SetTableFromDB(key string, val table.Table)
 	DeleteTableFromDB(key string)
+	ForEachInTablesNameFromDB() []int
+	DeleteClientFromDB(key int)
+	SetClientFromDB(key int, val client.Client)
+	GetClientFromDB(key int) (client.Client, bool)
+	DeleteTableInWaiting(key string)
+	GetTableInWaiting(key string) (int, bool)
+	SetTableInWaiting(key string, val int)
 	ForEachInClientsNameFromDB() []string
-	ForEachInTablesNameFromDB() []table.Table
 }
 
 func (db *DB) ForEachInClientsNameFromDB() []string {
@@ -55,18 +55,18 @@ func NewDB() *DB {
 	}
 }
 
-func (db *DB) GetClient(key int) (client.Client, bool) {
+func (db *DB) GetClientFromDB(key int) (client.Client, bool) {
 	if c, ok := db.clients[key]; ok {
 		return c, true
 	}
 	return client.Client{}, false
 }
 
-func (db *DB) SetClient(key int, val client.Client) {
+func (db *DB) SetClientFromDB(key int, val client.Client) {
 	db.clients[key] = val
 }
 
-func (db *DB) DeleteClient(key int) {
+func (db *DB) DeleteClientFromDB(key int) {
 	delete(db.clients, key)
 }
 
