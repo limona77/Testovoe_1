@@ -197,7 +197,7 @@ func HandleActions(c *client.Client, t *table.Table, settingsClub settings_club.
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Println("Введите команду: task.exe <input_file>")
+		fmt.Println("Введите команду: ./task.exe <input_file>")
 		return
 	}
 	db := data_base.NewDB()

@@ -10,21 +10,21 @@ type DBInterfaceClient interface {
 	DeleteClientFromDB(key int)
 	SetClientFromDB(key int, val Client)
 	GetClientFromDB(key int) (Client, bool)
-	DeleteTableInWaiting(key string)
+	DeleteTableInWaitingFromDB(key string)
 	ForEachInClientsNameFromDB() []string
 	SetTableFromDB(key string, val table.Table)
 	GetTableInWaiting(key string) (int, bool)
 	SetTableInWaiting(key string, val int)
-	GetTableFromDB(key string) (table.Table, bool)
 }
 type IClient interface {
 	CheckValidTime(startTime, endTime time.Time) bool
-	GetTableInWaitingFromDB(key string) (int, bool)
-	SetTableInWaitingFromDB(key string, val int)
-	DeleteInWaitingFromDB(key string)
-	GetClientFromDB(key int) (Client, bool)
-	SetClientInDB(key int, val Client)
-	DeleteClientInDB(key int)
+	GetTableInWaiting(key string) (int, bool)
+	SetTableInWaiting(key string, val int)
+	DeleteTableInWaiting(key string)
+	GetClient(key int) (Client, bool)
+	SetClient(key int, val Client)
+	DeleteClient(key int)
+
 	ForEachInClientsName() []string
 }
 
@@ -54,26 +54,26 @@ func (c *Client) CheckValidTime(startTime, endTime time.Time) bool {
 	return c.CurrentTime.Before(endTime) && c.CurrentTime.After(startTime)
 }
 
-func (c *Client) GetTableInWaitingFromDB(key string) (int, bool) {
+func (c *Client) GetTableInWaiting(key string) (int, bool) {
 	return c.db.GetTableInWaiting(key)
 }
 
-func (c *Client) SetTableInWaitingFromDB(key string, val int) {
+func (c *Client) SetTableInWaiting(key string, val int) {
 	c.db.SetTableInWaiting(key, val)
 }
 
-func (c *Client) DeleteInWaitingFromDB(key string) {
-	c.db.DeleteTableInWaiting(key)
+func (c *Client) DeleteTableInWaiting(key string) {
+	c.db.DeleteTableInWaitingFromDB(key)
 }
 
-func (c *Client) GetClientFromDB(key int) (Client, bool) {
+func (c *Client) GetClient(key int) (Client, bool) {
 	return c.db.GetClientFromDB(key)
 }
 
-func (c *Client) SetClientInDB(key int, val Client) {
+func (c *Client) SetClient(key int, val Client) {
 	c.db.SetClientFromDB(key, val)
 }
 
-func (c *Client) DeleteClientInDB(key int) {
+func (c *Client) DeleteClient(key int) {
 	c.db.DeleteClientFromDB(key)
 }

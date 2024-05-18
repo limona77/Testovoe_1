@@ -18,7 +18,7 @@ type IDB interface {
 	DeleteClientFromDB(key int)
 	SetClientFromDB(key int, val client.Client)
 	GetClientFromDB(key int) (client.Client, bool)
-	DeleteTableInWaiting(key string)
+	DeleteTableInWaitingFromDB(key string)
 	GetTableInWaiting(key string) (int, bool)
 	SetTableInWaiting(key string, val int)
 	ForEachInClientsNameFromDB() []string
@@ -43,7 +43,7 @@ func (db *DB) SetTableInWaiting(key string, val int) {
 	db.clientsInWaiting[key] = val
 }
 
-func (db *DB) DeleteTableInWaiting(key string) {
+func (db *DB) DeleteTableInWaitingFromDB(key string) {
 	delete(db.clientsInWaiting, key)
 }
 
